@@ -7,17 +7,15 @@ from sklearn.metrics import mean_absolute_error
 class PrepTimeModel:
     def __init__(self):
         # Optimized for XGBoost 3.1.x and Python 3.12
-        # In model.py, update the XGBRegressor params:
         self.model = xgb.XGBRegressor(
-            n_estimators=500,        # Reduced for faster debugging
-            learning_rate=0.1,       # Increased to jump-start learning
+            n_estimators=500,        
+            learning_rate=0.1,       
             max_depth=6, 
             tree_method='hist', 
-            objective='reg:absoluteerror', # Minimize direct minutes off
+            objective='reg:absoluteerror', 
             early_stopping_rounds=20,
             n_jobs=-1
         )
-        # Define features here to keep it consistent
         self.features = [
             'hour_sin', 'hour_cos', 'kitchen_load', 
             'cuisine_cat', 'loc_cat', 'avg_cost', 
@@ -28,7 +26,7 @@ class PrepTimeModel:
         X = df[self.features]
         y = df['prep_time_actual']
         
-        # Time-based split (80% Train, 20% Test)
+        # Time-based split
         split_idx = int(len(df) * 0.8)
         X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
         y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
@@ -41,9 +39,11 @@ class PrepTimeModel:
             verbose=100
         )
         
-        # Save feature importance plot
-        self.plot_importance()
+        # --- CRITICAL FIX FOR PREDICT.PY ---
+        self.model.save_model("chennai_prep_model.json")
+        print("💾 Model saved as 'chennai_prep_model.json'")
         
+        self.plot_importance()
         return X_test, y_test
 
     def get_metrics(self, X_test, y_test):
@@ -52,11 +52,9 @@ class PrepTimeModel:
         return {"MAE": round(mae, 2)}
 
     def plot_importance(self):
-        """Generates a chart showing which factors influence prep time most."""
         plt.figure(figsize=(10, 6))
-        # Get importance scores
         importance = self.model.feature_importances_
-        # Create plot
+        # Hue assigned to features to prevent future warnings
         sns.barplot(x=importance, y=self.features, hue=self.features, palette='viridis', legend=False)
         plt.title('Chennai Prep-Time: Feature Importance')
         plt.xlabel('Importance Score')

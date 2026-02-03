@@ -57,7 +57,7 @@ class PrepTimeModel:
         # Get importance scores
         importance = self.model.feature_importances_
         # Create plot
-        sns.barplot(x=importance, y=self.features, palette='viridis')
+        sns.barplot(x=importance, y=self.features, hue=self.features, palette='viridis', legend=False)
         plt.title('Chennai Prep-Time: Feature Importance')
         plt.xlabel('Importance Score')
         plt.tight_layout()

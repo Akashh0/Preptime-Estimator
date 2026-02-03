@@ -1,11 +1,22 @@
 @import "tailwindcss";
 
+@theme {
+  --color-midnight: #02040a;
+  --color-cobalt: #2e7bff;
+  --color-electric: #00d4ff;
+  --color-nebula: #7000ff;
+}
+
 @layer base {
   body {
-    /* This creates a subtle grid pattern that fills empty space elegantly */
-    background-image: 
-      radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
-    background-size: 40px 40px;
-    @apply bg-slate-950;
+    @apply bg-midnight text-slate-100;
+    /* Very subtle dot grid to fill empty space */
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+    background-size: 24px 24px;
   }
+}
+
+/* Add this to your index.css */
+.glow-orb {
+  transition: transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
 }

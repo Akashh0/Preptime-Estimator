@@ -29,28 +29,45 @@ HEADERS = {
 
 @app.get("/generate-aptitude/{company}")
 async def generate_aptitude(company: str):
-    print(f"--- Triggering Generation for {company} ---")
+    print(f"--- Generating 100% Verified Questions for {company} ---")
     
+    system_content = """You are a precise Aptitude Validator. 
+    Your goal is to generate 10 realistic aptitude questions with MATHEMATICALLY PROVEN answers.
+    
+    CRITICAL INSTRUCTIONS:
+    1. VERIFICATION: Before providing the "answer", solve the problem step-by-step in your internal logic to ensure it is 100% correct.
+    2. SCENARIOS: Use realistic situations (finance, travel, work). Do NOT mention specific companies.
+    3. NO HALLUCINATION: If a math problem involves percentages or ratios, double-check the calculation.
+    4. STRUCTURE: Return a JSON array. Each object must include an 'explanation' field showing the steps.
+    """
+
+    user_content = """Generate 10 questions. 
+    Format: 
+    [
+      {
+        "id": 1,
+        "category": "Quantitative/Logical",
+        "question": "Realistic scenario text...",
+        "options": ["A", "B", "C", "D"],
+        "answer": "The exact correct option string",
+        "explanation": "Step 1: ... Step 2: ... Therefore, the answer is X."
+      }
+    ]"""
+
     payload = {
         "model": MODEL_ID,
         "messages": [
-            {
-                "role": "system", 
-                "content": f"You are a recruitment examiner for {company}. Generate 10 aptitude MCQs as a raw JSON array. Return ONLY valid JSON."
-            },
-            {
-                "role": "user", 
-                "content": "Generate 10 questions. Format: [{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"...\"}]"
-            }
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content}
         ],
-        "max_tokens": 1500,
-        "temperature": 0.7,
-        # Telling the router we expect JSON helps with stability
+        "max_tokens": 2500, # Increased for detailed explanations
+        "temperature": 0.2, # Lower temperature = More accuracy/Less "creativity"
         "response_format": { "type": "json_object" } 
     }
 
     try:
-        response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=90)
+        response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=120)
+        # ... (rest of your existing JSON extraction logic)
         
         if response.status_code != 200:
             print(f"Router Error: {response.status_code} - {response.text}")

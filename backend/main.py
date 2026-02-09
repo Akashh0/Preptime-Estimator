@@ -13,13 +13,14 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["*"],
     allow_headers=["*"],
+    allow_methods=["*"],
 )
 
 HF_TOKEN = os.getenv("HF_TOKEN")
-# This specific URL combines the stability of the direct API with the modern Chat format
-API_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-Math-7B-Instruct/v1/chat/completions"
+# CHANGED: Using the flagship 7B model which is widely supported by the Router
+MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
+API_URL = "https://router.huggingface.co/v1/chat/completions"
 
 HEADERS = {
     "Authorization": f"Bearer {HF_TOKEN}",
@@ -28,53 +29,51 @@ HEADERS = {
 
 @app.get("/generate-aptitude/{company}")
 async def generate_aptitude(company: str):
-    print(f"--- Initializing Generation for {company} ---")
+    print(f"--- Triggering Generation for {company} ---")
     
     payload = {
-        "model": "Qwen/Qwen2.5-Math-7B-Instruct",
+        "model": MODEL_ID,
         "messages": [
             {
                 "role": "system", 
-                "content": f"You are a recruitment examiner for {company}. Generate exactly 10 aptitude MCQs as a raw JSON array. Return ONLY the JSON."
+                "content": f"You are a recruitment examiner for {company}. Generate 10 aptitude MCQs as a raw JSON array. Return ONLY valid JSON."
             },
             {
                 "role": "user", 
-                "content": "Generate the questions. Format: [{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"...\"}]"
+                "content": "Generate 10 questions. Format: [{\"question\": \"...\", \"options\": [\"A\", \"B\", \"C\", \"D\"], \"answer\": \"...\"}]"
             }
         ],
         "max_tokens": 1500,
-        "temperature": 0.7
+        "temperature": 0.7,
+        # Telling the router we expect JSON helps with stability
+        "response_format": { "type": "json_object" } 
     }
 
     try:
-        # We use a 60-second timeout because Math models take time to 'think'
-        response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=60)
+        response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=90)
         
         if response.status_code != 200:
-            print(f"API Error: {response.status_code} - {response.text}")
-            raise HTTPException(status_code=response.status_code, detail="Hugging Face API Error")
+            print(f"Router Error: {response.status_code} - {response.text}")
+            raise HTTPException(status_code=response.status_code, detail="Router Handshake Failed")
 
         result = response.json()
         raw_text = result['choices'][0]['message']['content']
         
         print("SYSTEM: Neural Response Received.")
 
-        # Extracting the JSON array from the response string
+        # Clean JSON extraction
         json_match = re.search(r'\[\s*{.*}\s*\]', raw_text, re.DOTALL)
         
         if json_match:
             return json.loads(json_match.group())
         else:
-            print(f"Structure Conflict. Raw text: {raw_text[:200]}")
-            raise HTTPException(status_code=500, detail="Incompatible Model Output")
+            # Fallback for models that return raw JSON without brackets
+            return json.loads(raw_text)
 
     except Exception as e:
         print(f"CRITICAL SYSTEM ERROR: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Generation Logic Failed")
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-    
-    
-    

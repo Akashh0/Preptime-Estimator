@@ -20,3 +20,38 @@
 .glow-orb {
   transition: transform 0.15s cubic-bezier(0.23, 1, 0.32, 1);
 }
+
+@layer utilities {
+  .text-outline-white {
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+  }
+  
+  .animate-spin-slow {
+    animation: spin 8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+@layer base {
+  html {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .text-outline-white {
+    -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.2);
+  }
+  .animate-spin-slow {
+    animation: spin 8s linear infinite;
+  }
+}

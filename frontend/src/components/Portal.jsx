@@ -1,7 +1,8 @@
 import React from 'react';
 import { Terminal, BrainCircuit, ChevronRight, Zap } from 'lucide-react';
 
-export default function Portal({ onEnterAptitude }) {
+// 1. ADD onEnterCoding to the props
+export default function Portal({ onEnterAptitude, onEnterCoding }) {
   return (
     <div className="relative z-50 h-screen w-full flex flex-col items-center justify-center p-10 overflow-hidden bg-transparent font-sans">
       
@@ -18,7 +19,6 @@ export default function Portal({ onEnterAptitude }) {
             </div>
           </div>
           
-          {/* FIXED: Underscore overlap fix via leading-tight and padding */}
           <h1 className="text-[12vw] font-bold italic tracking-tighter uppercase leading-[0.95] text-white pb-2">
             PREP_<span className="text-outline-white text-transparent" style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.2)' }}>TIME!</span>
           </h1>
@@ -29,7 +29,11 @@ export default function Portal({ onEnterAptitude }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full px-4">
-          <button className="group relative p-16 rounded-[4rem] bg-white/[0.01] border border-white/5 backdrop-blur-3xl hover:border-purple-500/40 transition-all duration-700 overflow-hidden text-left">
+          {/* 2. ATTACH onEnterCoding TO THE BUTTON */}
+          <button 
+            onClick={onEnterCoding}
+            className="group relative p-16 rounded-[4rem] bg-white/[0.01] border border-white/5 backdrop-blur-3xl hover:border-purple-500/40 transition-all duration-700 overflow-hidden text-left"
+          >
             <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
             <Terminal className="text-slate-700 group-hover:text-purple-400 mb-10 transition-colors" size={56} />
             <h2 className="text-5xl font-bold text-white italic uppercase tracking-tighter leading-none">Coding<br/><span className="text-white/40">Practice.</span></h2>

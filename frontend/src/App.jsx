@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { AnimatePresence, motion } from 'framer-motion'; // Added Framer Motion
+import { AnimatePresence, motion } from 'framer-motion';
 import Portal from './components/Portal';
 import Background from './components/Background';
 import Navbar from './components/Navbar';
 import BentoGrid from './components/BentoGrid';
 import Assessment from './components/Assessment';
+import CodingArena from './components/CodingArena'; // Import the new component
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
-  const [mode, setMode] = useState('portal'); 
-  const [view, setView] = useState('landing'); 
+  const [mode, setMode] = useState('portal'); // 'portal' | 'aptitude' | 'coding'
+  const [view, setView] = useState('landing'); // 'landing' | 'testing'
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [currentQ, setCurrentQ] = useState(0);
@@ -37,7 +38,6 @@ export default function App() {
     setUserAnswers({});
   };
 
-  // Sleek transition variants
   const fadeBlur = {
     initial: { opacity: 0, filter: "blur(10px)", y: 10 },
     animate: { opacity: 1, filter: "blur(0px)", y: 0 },
@@ -58,7 +58,11 @@ export default function App() {
             exit="exit"
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Portal onEnterAptitude={() => setMode('aptitude')} />
+            {/* Added onEnterCoding to switch modes */}
+            <Portal 
+              onEnterAptitude={() => setMode('aptitude')} 
+              onEnterCoding={() => setMode('coding')} 
+            />
           </motion.div>
         ) : mode === 'aptitude' ? (
           <motion.div 
@@ -101,18 +105,12 @@ export default function App() {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="relative z-50 h-screen flex flex-col items-center justify-center space-y-8"
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <h1 className="text-8xl font-black italic tracking-tighter uppercase text-white leading-tight">
-              Coding_<span className="text-outline-white text-transparent">Arena</span>
-            </h1>
-            <p className="font-mono text-slate-500 tracking-[0.5em]">// DEVELOPMENT_IN_PROGRESS</p>
-            <button 
-              onClick={() => setMode('portal')} 
-              className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white hover:text-black transition-all font-bold uppercase tracking-widest"
-            >
-              Return_to_Portal
-            </button>
+            <Navbar mode="coding" onBack={() => setMode('portal')} />
+            <main className="relative z-10 p-12 max-w-[1600px] mx-auto">
+              <CodingArena />
+            </main>
           </motion.div>
         )}
       </AnimatePresence>

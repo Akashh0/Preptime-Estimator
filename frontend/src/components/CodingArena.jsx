@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Code2, GitMerge, Loader2, ChevronRight, CheckCircle2, Activity, Zap, Layers, Cpu } from 'lucide-react';
+import { Terminal, Code2, GitMerge, Loader2, ChevronRight, CheckCircle2, Activity, Zap, Layers, Cpu, Database, Globe } from 'lucide-react';
 import ProblemWorkspace from './ProblemWorkspace';
 
 const TOPICS = [
-  { id: 1, name: "Arrays & Hashing", status: "unlocked", problems: 12, diff: "Foundation", desc: "Master the building blocks of efficient data storage and retrieval." },
-  { id: 2, name: "Two Pointers", status: "unlocked", problems: 8, diff: "Basic", desc: "Optimize linear searches and array manipulations with dual-index logic." },
-  { id: 3, name: "Sliding Window", status: "unlocked", problems: 5, diff: "Medium", desc: "Efficiently handle subarray and substring calculations within a dynamic frame." },
-  { id: 4, name: "Trees & Graphs", status: "unlocked", problems: 20, diff: "Advanced", desc: "Navigate complex hierarchical and interconnected data structures." },
+  { id: 1, name: "Arrays & Hashing", problems: 12, diff: "Foundation", category: "Data_Structures", desc: "Construct high-efficiency data mapping systems. Reconstruct the base logic for O(1) retrieval patterns." },
+  { id: 2, name: "Two Pointers", problems: 8, diff: "Basic", category: "Algorithm_Design", desc: "Execute dual-stream search optimization. Parallelize linear traversals to bypass O(n²) bottlenecks." },
+  { id: 3, name: "Sliding Window", problems: 5, diff: "Medium", category: "Optimization", desc: "Synthesize dynamic frame calculations. Stabilize fluid data subsets across high-frequency streams." },
+  { id: 4, name: "Trees & Graphs", problems: 20, diff: "Advanced", category: "Non-Linear_Logic", desc: "Map non-linear hierarchical nodes. Resolve complex interconnected dependency matrices." },
 ];
 
 export default function CodingArena() {
@@ -32,7 +32,6 @@ export default function CodingArena() {
       setView('problem-list');
       return;
     }
-
     setLoading(true);
     setSelectedTopic(topic.name);
     try {
@@ -46,131 +45,124 @@ export default function CodingArena() {
     }
   };
 
-  const clearCache = () => {
-    localStorage.removeItem('neural_problems_cache');
-    setProblemsCache({});
-    setView('roadmap');
-  };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh]">
-        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
-          <Zap className="text-purple-500 mb-8" size={60} />
-        </motion.div>
-        <p className="font-mono text-purple-400 tracking-[0.8em] animate-pulse uppercase">Syncing_Neural_Vault</p>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center h-[60vh]">
+      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
+        <Zap className="text-purple-500 mb-8" size={60} />
+      </motion.div>
+      <p className="font-mono text-purple-400 tracking-[0.8em] animate-pulse uppercase italic">Syncing_Neural_Vault</p>
+    </div>
+  );
 
   if (view === 'workspace' && activeProblem) {
     return <ProblemWorkspace problem={activeProblem} onBack={() => setView('problem-list')} />;
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 max-w-[1600px] mx-auto space-y-12">
+    <div className="space-y-24 pt-10 animate-in fade-in slide-in-from-bottom-10 duration-1000 max-w-[1600px] mx-auto">
       
-      {/* HEADER HUD: PROFESSIONAL HIERARCHY */}
-      <div className="flex justify-between items-start border-b border-white/5 pb-8">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 text-purple-500 font-mono text-[10px] tracking-[0.4em] uppercase">
+      {/* HEADER: SYMMETRIC & PROFESSIONAL (Aptitude Vault Style) */}
+      <div className="relative flex flex-col lg:flex-row lg:items-end justify-between gap-12 border-l border-white/10 pl-10 ml-4">
+        <div className="space-y-6">
+          <div className="flex items-center gap-3 text-purple-500 font-mono text-[10px] tracking-[0.4em] uppercase font-bold">
             <Activity size={14} className="animate-pulse" />
-            <span>{view === 'roadmap' ? 'Architecture_Link_Stable' : `Session_Node: ${selectedTopic}`}</span>
+            <span>{view === 'roadmap' ? 'Architecture_Selection_Active' : `Session_Node: ${selectedTopic}`}</span>
           </div>
-          <h1 className="text-7xl font-black italic tracking-tighter uppercase text-white leading-none">
-            {view === 'roadmap' ? 'Coding' : 'Problem'}<span className="text-transparent" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.2)' }}>_Arena.</span>
+          <h1 className="text-8xl font-black text-white tracking-tighter uppercase leading-[0.85]">
+            {view === 'roadmap' ? 'Coding' : 'Problem'}<br />
+            <span className="text-transparent" style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.2)' }}>
+              {view === 'roadmap' ? 'Arena.' : 'Set.'}
+            </span>
           </h1>
         </div>
-
-        <div className="flex flex-col items-end gap-4">
-           <div className="flex gap-3">
-             <div className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-mono text-slate-500 uppercase tracking-widest">
-               <Cpu size={10} className="inline mr-2 text-purple-400" /> RTX_4050_Active
-             </div>
-           </div>
-          {view === 'roadmap' ? (
-            <button onClick={clearCache} className="px-6 py-2 bg-red-500/5 border border-red-500/20 text-red-500/60 rounded-xl font-mono text-[9px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all duration-500">
-              Flush_Vault_Cache
-            </button>
-          ) : (
-            <button onClick={() => setView('roadmap')} className="px-6 py-2 bg-white/5 border border-white/10 text-white/60 rounded-xl font-mono text-[9px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">
-              Return_to_Roadmap
-            </button>
-          )}
+        
+        <div className="max-w-md text-left lg:text-right space-y-4">
+          <p className="text-[11px] font-mono text-slate-500 tracking-[0.2em] uppercase leading-relaxed italic">
+            // {view === 'roadmap' 
+                ? "Target a synchronization node to reconstruct historical DSA patterns and neural threads." 
+                : "Initialize compiler link to validate logic against industry-standard test cases."}
+          </p>
+          <div className="flex lg:justify-end gap-6 opacity-30">
+            <div className="flex items-center gap-2 text-[8px] font-mono text-white tracking-widest">
+                <Cpu size={10} className="text-purple-400"/> RTX_4050_KERNEL
+            </div>
+            <div className="flex items-center gap-2 text-[8px] font-mono text-white tracking-widest">
+                <Database size={10} className="text-cyan-400"/> CACHE_SYNCED
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* VIEW 1: SYMMETRIC GRID ROADMAP */}
-      {view === 'roadmap' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-4">
-          {TOPICS.map((topic, idx) => (
-            <motion.div 
-              key={topic.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
+      {/* STRUCTURED BENTO GRID FOR ROADMAP */}
+      <div className="grid grid-cols-12 gap-6 px-4 pb-20">
+        {view === 'roadmap' ? (
+          TOPICS.map((topic, i) => (
+            <div 
+              key={topic.id} 
               onClick={() => fetchTopicProblems(topic)}
-              className="group relative p-10 rounded-[3.5rem] bg-white/[0.01] border border-white/5 backdrop-blur-3xl hover:border-purple-500/40 transition-all duration-700 cursor-pointer overflow-hidden flex gap-8"
+              className="col-span-12 md:col-span-6 group relative cursor-pointer transition-all duration-500 hover:scale-[1.02]"
             >
-              {/* ICON BLOCK */}
-              <div className={`w-24 h-24 rounded-3xl border flex flex-shrink-0 items-center justify-center transition-all duration-700
-                ${problemsCache[topic.name] ? 'bg-purple-600 border-purple-400 text-white shadow-[0_0_30px_rgba(168,85,247,0.2)]' : 'bg-white/5 border-white/10 text-slate-600 group-hover:border-purple-500/30 group-hover:text-purple-400'}`}>
-                <Layers size={32} />
-              </div>
-
-              {/* CONTENT BLOCK */}
-              <div className="flex-grow space-y-4">
+              <div className="relative h-full w-full overflow-hidden bg-white/[0.01] border border-white/5 backdrop-blur-3xl rounded-[3rem] transition-all duration-700 group-hover:border-purple-500/30 shadow-2xl p-10 flex flex-col justify-between min-h-[350px]">
+                
                 <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] font-mono text-purple-500 uppercase tracking-[0.3em] mb-1 block italic">{topic.diff}</span>
-                    <h3 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">{topic.name}</h3>
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-mono text-purple-500/60 uppercase tracking-widest block font-bold italic">Node_Ref: 0x0{i+1}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] italic">{topic.category}</span>
                   </div>
-                  <div className="text-right">
-                    <span className="text-[9px] font-mono text-slate-600 uppercase block tracking-widest">Logic_Nodes</span>
-                    <span className="text-xl font-bold text-white">{topic.problems}</span>
+                  <div className={`p-4 rounded-2xl bg-white/5 border border-white/10 transition-all duration-500
+                    ${problemsCache[topic.name] ? 'text-purple-400 border-purple-500/20 bg-purple-500/5' : 'text-slate-600 group-hover:text-purple-400'}`}>
+                    <Layers size={20}/>
                   </div>
                 </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed font-medium line-clamp-2 pr-12">
-                  {topic.desc}
-                </p>
-                {problemsCache[topic.name] && (
-                  <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full w-fit">
-                    <CheckCircle2 size={10} className="text-green-400" />
-                    <span className="text-[8px] font-mono text-green-400 uppercase tracking-[0.2em] font-bold">Vaulted_Ready</span>
-                  </div>
-                )}
-              </div>
-              
-              <ChevronRight className="absolute right-8 top-1/2 -translate-y-1/2 text-white/5 group-hover:text-purple-500 group-hover:translate-x-2 transition-all" size={24} />
-            </motion.div>
-          ))}
-        </div>
-      )}
 
-      {/* VIEW 2: PROBLEM SELECTION LIST */}
-      {view === 'problem-list' && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {problemsCache[selectedTopic]?.map((prob, index) => (
-            <motion.button 
-              key={index}
-              whileHover={{ scale: 1.02, y: -5 }}
-              onClick={() => { setActiveProblem(prob); setView('workspace'); }}
-              className="group p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 backdrop-blur-3xl text-left hover:border-purple-500/40 transition-all duration-500 shadow-xl relative overflow-hidden h-[280px] flex flex-col justify-between"
-            >
-              <div className="flex justify-between items-start">
-                <span className="text-[9px] font-mono text-purple-500 border border-purple-500/30 px-3 py-1 rounded-full uppercase tracking-widest italic">{prob.difficulty}</span>
-                <span className="text-[9px] font-mono text-slate-700">NODE_0{index + 1}</span>
-              </div>
-              <div>
-                <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-none group-hover:text-purple-400 transition-colors">{prob.name}</h4>
-                <div className="mt-6 flex items-center gap-3 text-[10px] font-mono text-slate-500 group-hover:text-purple-500 transition-colors uppercase tracking-[0.3em]">
-                  Initialize_Session <ChevronRight size={14} />
+                <div className="space-y-6">
+                  <h3 className="text-5xl font-black text-white uppercase italic tracking-tighter leading-none transition-transform duration-500 group-hover:translate-x-2">
+                    {topic.name}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 leading-relaxed font-medium line-clamp-2 pr-12">
+                    {topic.desc}
+                  </p>
+                  
+                  <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                    <div className="flex items-center gap-4">
+                      <span className="text-[10px] font-bold text-slate-500 group-hover:text-purple-400 transition-all uppercase tracking-[0.4em]">
+                        {problemsCache[topic.name] ? 'VAULTED_READY' : 'INIT_SYNC'}
+                      </span>
+                      <ChevronRight size={16} className="text-slate-700 group-hover:text-purple-400 transition-all group-hover:translate-x-2" />
+                    </div>
+                    <div className="text-right">
+                        <span className="text-[8px] font-mono text-slate-600 uppercase tracking-widest block">Threads</span>
+                        <span className="text-xl font-bold text-white leading-none">{topic.problems}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </motion.button>
-          ))}
-        </motion.div>
-      )}
-    </motion.div>
+            </div>
+          ))
+        ) : (
+          /* PROBLEM LIST VIEW (Grid of Cards) */
+          problemsCache[selectedTopic]?.map((prob, index) => (
+            <div 
+              key={index}
+              onClick={() => { setActiveProblem(prob); setView('workspace'); }}
+              className="col-span-12 md:col-span-4 group relative cursor-pointer"
+            >
+              <div className="p-10 rounded-[3rem] bg-white/[0.01] border border-white/5 backdrop-blur-3xl text-left hover:border-purple-500/50 transition-all duration-500 shadow-xl h-[280px] flex flex-col justify-between overflow-hidden">
+                <div className="flex justify-between items-start">
+                  <span className="text-[9px] font-mono text-purple-500 border border-purple-500/30 px-3 py-1 rounded-full uppercase tracking-widest italic">{prob.difficulty}</span>
+                  <span className="text-[9px] font-mono text-slate-700">NODE_0{index + 1}</span>
+                </div>
+                <div>
+                  <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-none group-hover:text-purple-400 transition-colors">{prob.name}</h4>
+                  <div className="mt-6 flex items-center gap-3 text-[10px] font-mono text-slate-500 group-hover:text-purple-500 transition-colors uppercase tracking-[0.3em]">
+                    Run_Logic <ChevronRight size={14} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
   );
 }

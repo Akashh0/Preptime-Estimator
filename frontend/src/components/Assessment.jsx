@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { BarChart3, ChevronRight, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BarChart3, ChevronRight, X, CheckCircle2, AlertCircle, Cpu, ShieldCheck, Timer } from 'lucide-react';
 
 export default function Assessment({ 
   questions, currentQ, setCurrentQ, userAnswers, setUserAnswers, onTerminate 
@@ -7,11 +8,10 @@ export default function Assessment({
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const selectOption = (opt) => {
-    if (isSubmitted) return; // Lock answers after submission
+    if (isSubmitted) return;
     setUserAnswers({ ...userAnswers, [currentQ]: opt });
   };
 
-  // Calculate Score
   const calculateResults = () => {
     let score = 0;
     questions.forEach((q, i) => {
@@ -21,91 +21,131 @@ export default function Assessment({
   };
 
   return (
-    <div className="grid grid-cols-12 gap-12 pt-10 h-full animate-in slide-in-from-bottom-12 duration-1000">
+    <div className="max-w-[1600px] mx-auto h-[85vh] flex flex-col gap-8 animate-in fade-in duration-1000">
       
-      {/* LEFT SIDEBAR: MATRIX */}
-      <div className="col-span-1 flex flex-col gap-4 border-r border-white/5 pr-12">
-        {questions.map((q, i) => {
-          const isCorrect = userAnswers[i] === q.answer;
-          return (
-            <button 
-              key={i} 
-              onClick={() => setCurrentQ(i)}
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center font-mono text-sm transition-all duration-500
-              ${currentQ === i ? 'scale-110 shadow-xl z-10' : ''}
-              ${isSubmitted 
-                ? isCorrect ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                : currentQ === i ? 'bg-cyan-500 text-black font-black' : userAnswers[i] ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/5 text-slate-600'
-              }`}
-            >
-              {i + 1}
-            </button>
-          );
-        })}
-      </div>
+      {/* HEADER HUD: Professional Stats */}
+      <div className="flex justify-between items-end border-b border-white/5 pb-8">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 text-cyan-500 font-mono text-[10px] tracking-[0.4em] uppercase">
+            <Cpu size={14} className="animate-pulse" />
+            <span>{isSubmitted ? 'Evaluation_Complete' : `Active_Simulation: Node_0${currentQ + 1}`}</span>
+          </div>
+          <h1 className="text-7xl font-black italic tracking-tighter uppercase text-white leading-none">
+            {isSubmitted ? `Score_` : `Test_`}<span className="text-transparent" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.2)' }}>{isSubmitted ? `${calculateResults()}/${questions.length}` : 'Sequence.'}</span>
+          </h1>
+        </div>
 
-      {/* RIGHT WORKSPACE */}
-      <div className="col-span-11 space-y-12 pb-20">
-        <div className="flex justify-between items-end">
-          <div className="space-y-4">
-            <h2 className="text-7xl font-black text-white italic tracking-tighter uppercase leading-none">
-              {isSubmitted ? `Score: ${calculateResults()}/${questions.length}` : `Simulation_0${currentQ + 1}`}
-            </h2>
+        <div className="flex gap-4 items-center">
+          <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3 text-[10px] font-mono text-slate-500 uppercase tracking-widest mr-4">
+            <Timer size={14} className="text-cyan-400" /> Real-time_Sync
           </div>
           {!isSubmitted ? (
             <button 
               onClick={() => setIsSubmitted(true)}
-              className="px-14 py-5 bg-white text-black font-black text-sm uppercase italic rounded-2xl hover:bg-cyan-400 transition-all active:scale-95"
+              className="px-10 py-4 bg-white text-black font-black text-xs uppercase italic rounded-2xl hover:bg-cyan-400 transition-all shadow-xl shadow-cyan-400/10 active:scale-95"
             >
               Submit_Data_Packet
             </button>
           ) : (
             <button 
               onClick={onTerminate}
-              className="px-14 py-5 bg-red-500 text-white font-black text-sm uppercase italic rounded-2xl hover:bg-red-600 transition-all"
+              className="px-10 py-4 bg-red-500 text-white font-black text-xs uppercase italic rounded-2xl hover:bg-red-600 transition-all shadow-xl shadow-red-500/20"
             >
-              Terminate_Session
+              Terminate_Link
             </button>
           )}
         </div>
+      </div>
 
-        {/* QUESTION CARD */}
-        <div className="p-20 rounded-[4.5rem] bg-[#121216]/60 border border-white/10 backdrop-blur-3xl relative overflow-hidden">
-          <p className="text-5xl font-bold text-slate-100 leading-[1.2] mb-24 italic tracking-tight">
-            {questions[currentQ].question}
-          </p>
+      <div className="grid grid-cols-12 gap-8 flex-grow overflow-hidden">
+        
+        {/* LEFT PANEL: Navigation & Progress */}
+        <div className="col-span-3 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="p-8 rounded-[3rem] bg-white/[0.01] border border-white/5 backdrop-blur-3xl space-y-8">
+            <div className="space-y-2">
+              <span className="text-[10px] font-mono text-slate-600 uppercase tracking-[0.3em]">Matrix_Status</span>
+              <div className="grid grid-cols-4 gap-3">
+                {questions.map((q, i) => {
+                  const isCorrect = userAnswers[i] === q.answer;
+                  return (
+                    <button 
+                      key={i} 
+                      onClick={() => setCurrentQ(i)}
+                      className={`h-12 rounded-xl flex items-center justify-center font-mono text-[10px] transition-all duration-500 border
+                      ${currentQ === i ? 'scale-110 shadow-lg z-10' : ''}
+                      ${isSubmitted 
+                        ? isCorrect ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'
+                        : currentQ === i ? 'bg-cyan-500 text-black border-cyan-400' : userAnswers[i] ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' : 'bg-white/5 text-slate-700 border-white/5'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-          <div className="grid grid-cols-2 gap-8">
-            {questions[currentQ].options.map((opt, idx) => {
-              const isCorrectOpt = opt === questions[currentQ].answer;
-              const isSelected = userAnswers[currentQ] === opt;
-              
-              return (
-                <button 
-                  key={idx} 
-                  onClick={() => selectOption(opt)}
-                  className={`relative p-10 rounded-[2.5rem] border transition-all duration-500 text-left
-                  ${isSubmitted 
-                    ? isCorrectOpt ? 'border-green-500 bg-green-500/10' : isSelected ? 'border-red-500 bg-red-500/10' : 'border-white/5 opacity-40'
-                    : isSelected ? 'border-cyan-400 bg-cyan-500/10 text-white' : 'border-white/5 bg-white/[0.03]'}`}
-                >
-                  <span className="text-2xl font-black italic tracking-tight">{opt}</span>
-                  {isSubmitted && isCorrectOpt && <CheckCircle2 className="absolute top-10 right-10 text-green-400" />}
-                  {isSubmitted && isSelected && !isCorrectOpt && <AlertCircle className="absolute top-10 right-10 text-red-400" />}
-                </button>
-              );
-            })}
+            <div className="pt-6 border-t border-white/5 space-y-4">
+               <div className="flex items-center gap-3 text-[9px] font-mono text-slate-500 uppercase tracking-widest">
+                 <ShieldCheck size={12} className="text-cyan-500" /> Integrity_Verified
+               </div>
+               <p className="text-[10px] text-slate-600 italic leading-relaxed">
+                 Selected node: {questions[currentQ].category}. Ensure logical consistency before packet submission.
+               </p>
+            </div>
           </div>
+        </div>
 
-          {/* EXPLANATION HUD (Shows after submission) */}
-          {isSubmitted && (
-            <div className="mt-16 p-10 bg-cyan-500/5 border border-cyan-500/20 rounded-[2.5rem] animate-in fade-in slide-in-from-top-4 duration-700">
-              <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest block mb-4">// Logic_Proof</span>
-              <p className="text-lg text-slate-300 italic font-medium">
-                {questions[currentQ].explanation}
+        {/* RIGHT PANEL: Workspace */}
+        <div className="col-span-9 rounded-[4rem] bg-white/[0.01] border border-white/5 backdrop-blur-3xl relative overflow-y-auto p-16 custom-scrollbar">
+          <div className="max-w-4xl space-y-12">
+            <div className="space-y-4">
+              <span className="text-[10px] font-mono text-cyan-500 uppercase tracking-[0.5em] italic">// Input_Stream</span>
+              <p className="text-4xl font-bold text-white leading-tight italic tracking-tight">
+                {questions[currentQ].question}
               </p>
             </div>
-          )}
+
+            <div className="grid grid-cols-1 gap-4">
+              {questions[currentQ].options.map((opt, idx) => {
+                const isCorrectOpt = opt === questions[currentQ].answer;
+                const isSelected = userAnswers[currentQ] === opt;
+                
+                return (
+                  <button 
+                    key={idx} 
+                    onClick={() => selectOption(opt)}
+                    className={`group relative p-8 rounded-[2rem] border transition-all duration-500 text-left flex justify-between items-center
+                    ${isSubmitted 
+                      ? isCorrectOpt ? 'border-green-500 bg-green-500/10 text-white' : isSelected ? 'border-red-500 bg-red-500/10 text-red-400' : 'border-white/5 opacity-40'
+                      : isSelected ? 'border-cyan-400 bg-cyan-500/10 text-white shadow-xl shadow-cyan-400/5' : 'border-white/5 bg-white/[0.02] text-slate-500 hover:border-white/20'}`}
+                  >
+                    <span className="text-xl font-black italic tracking-tight">{opt}</span>
+                    <div className="flex items-center gap-3">
+                      {isSubmitted && isCorrectOpt && <CheckCircle2 size={20} className="text-green-400" />}
+                      {isSubmitted && isSelected && !isCorrectOpt && <AlertCircle size={20} className="text-red-400" />}
+                      <span className="text-[9px] font-mono opacity-20 group-hover:opacity-40 uppercase tracking-widest">Option_0{idx + 1}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <AnimatePresence>
+              {isSubmitted && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-8 p-10 bg-cyan-500/5 border border-cyan-500/10 rounded-[2.5rem]"
+                >
+                  <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest block mb-4">// Logic_Verification_Output</span>
+                  <p className="text-lg text-slate-300 italic font-medium leading-relaxed">
+                    {questions[currentQ].explanation}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>

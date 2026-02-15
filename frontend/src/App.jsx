@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import Portal from './components/Portal';
@@ -6,27 +6,55 @@ import Background from './components/Background';
 import Navbar from './components/Navbar';
 import BentoGrid from './components/BentoGrid';
 import Assessment from './components/Assessment';
-import CodingArena from './components/CodingArena'; // Import the new component
+import CodingArena from './components/CodingArena';
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
-  const [mode, setMode] = useState('portal'); // 'portal' | 'aptitude' | 'coding'
-  const [view, setView] = useState('landing'); // 'landing' | 'testing'
+  const [mode, setMode] = useState('portal'); 
+  const [view, setView] = useState('landing'); 
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
 
+  // NEW: Persistent Aptitude Vault
+  const [aptitudeCache, setAptitudeCache] = useState(() => {
+    const saved = localStorage.getItem('aptitude_vault');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // Sync vault to localStorage whenever it updates
+  useEffect(() => {
+    localStorage.setItem('aptitude_vault', JSON.stringify(aptitudeCache));
+  }, [aptitudeCache]);
+
   const startAptitude = async (company) => {
+    // Check Neural Vault first to prevent re-generation
+    if (aptitudeCache[company]) {
+      setQuestions(aptitudeCache[company]);
+      setView('testing');
+      setCurrentQ(0);
+      setUserAnswers({});
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await axios.get(`http://localhost:8000/generate-aptitude/${company}`);
-      setQuestions(res.data);
+      const newQuestions = res.data;
+      
+      // Update Vault
+      setAptitudeCache(prev => ({
+        ...prev,
+        [company]: newQuestions
+      }));
+
+      setQuestions(newQuestions);
       setView('testing');
       setCurrentQ(0);
       setUserAnswers({});
     } catch (err) {
-      console.error("Link Failed", err);
+      console.error("Neural Link Failed", err);
     } finally {
       setLoading(false);
     }
@@ -58,7 +86,6 @@ export default function App() {
             exit="exit"
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Added onEnterCoding to switch modes */}
             <Portal 
               onEnterAptitude={() => setMode('aptitude')} 
               onEnterCoding={() => setMode('coding')} 

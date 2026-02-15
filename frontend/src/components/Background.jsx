@@ -1,26 +1,42 @@
 export default function Background() {
   return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#050506]">
-      {/* LAYER 1: NEURAL BLOBS (ANIMATED) */}
-      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-cyan-500/10 blur-[120px] rounded-full animate-pulse duration-[8s]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-purple-600/5 blur-[150px] rounded-full animate-bounce duration-[15s]" />
-      <div className="absolute top-[20%] right-[20%] w-[40%] h-[40%] bg-blue-500/5 blur-[100px] rounded-full animate-pulse duration-[10s] delay-700" />
+    <div className="fixed inset-0 z-0 overflow-hidden bg-[#020203]">
+      {/* LAYER 1: THE LIQUID MESH */}
+      <div className="absolute inset-0 opacity-40">
+        <div 
+          className="absolute top-[-20%] left-[-10%] w-[120%] h-[120%] animate-fluid-morph"
+          style={{
+            background: `radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.2) 0px, transparent 55%),
+                         radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.2) 0px, transparent 55%),
+                         radial-gradient(at 50% 50%, rgba(59, 130, 246, 0.1) 0px, transparent 70%)`,
+          }}
+        />
+      </div>
 
-      {/* LAYER 2: TOPOGRAPHIC GRID */}
-      <div className="absolute inset-0 opacity-[0.03] mix-blend-screen" 
-           style={{
-             backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
-             backgroundSize: '60px 60px'
-           }} 
-      />
+      {/* LAYER 2: TURBULENT GRAIN (This adds the "Sleek/Unique" texture) */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.2] contrast-125 brightness-150 pointer-events-none">
+        <filter id="pedro-noise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#pedro-noise)" />
+      </svg>
 
-      {/* LAYER 3: GRAIN & NOISE */}
-      <div className="absolute inset-0 opacity-[0.4] mix-blend-overlay pointer-events-none"
-           style={{ backgroundImage: `url('https://grainy-gradients.vercel.app/noise.svg')` }} 
-      />
+      {/* LAYER 3: VIGNETTE & BLUR EDGE */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(2,2,3,0)_0%,rgba(2,2,3,0.9)_100%)]" />
       
-      {/* LAYER 4: VIGNETTE */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(5,5,6,0.8)_100%)]" />
+      <style>
+        {`
+          @keyframes fluid-morph {
+            0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg) scale(1); }
+            33% { border-radius: 60% 40% 30% 70% / 50% 60% 40% 60%; transform: rotate(2deg) scale(1.1); }
+            66% { border-radius: 40% 60% 50% 50% / 60% 30% 70% 40%; transform: rotate(-2deg) scale(0.9); }
+          }
+          .animate-fluid-morph {
+            animation: fluid-morph 25s infinite ease-in-out;
+          }
+        `}
+      </style>
     </div>
   );
 }

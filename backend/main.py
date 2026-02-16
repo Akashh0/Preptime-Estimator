@@ -78,44 +78,79 @@ async def generate_coding(topic: str):
     payload = {"model": MODEL_ID, "messages": [{"role": "system", "content": system_content}, {"role": "user", "content": user_content}], "max_tokens": 3000, "temperature": 0.2, "response_format": { "type": "json_object" }}
     return await call_huggingface_router(payload, "coding")
 
-# --- MULTI-LANGUAGE VALIDATION KERNEL ---
+# --- MULTI-LANGUAGE VALIDATION KERNEL (UPDATED FOR STABILITY) ---
 @app.post("/execute-code")
 async def execute_code(request: CodeExecutionRequest):
     print(f"--- Validating {request.language} Thread ---")
-    results = []
+    # Always initialize as a list to prevent frontend "Object not valid" errors
+    results = [] 
     
     with tempfile.TemporaryDirectory() as tmpdir:
-        if request.language == "python3":
-            file_path = os.path.join(tmpdir, "solution.py")
-            with open(file_path, "w") as f: f.write(request.code)
-            
-            for case in request.test_cases:
-                try:
-                    proc = subprocess.run(["python", file_path], input=str(case['input']), capture_output=True, text=True, timeout=5)
-                    results.append({"input": case['input'], "expected": str(case['output']).strip(), "actual": proc.stdout.strip(), "passed": proc.stdout.strip() == str(case['output']).strip(), "error": proc.stderr})
-                except subprocess.TimeoutExpired: results.append({"error": "Timeout"})
+        try:
+            if request.language == "python3":
+                file_path = os.path.join(tmpdir, "solution.py")
+                with open(file_path, "w") as f: f.write(request.code)
+                
+                for case in request.test_cases:
+                    try:
+                        proc = subprocess.run(["python", file_path], input=str(case['input']), capture_output=True, text=True, timeout=5)
+                        results.append({
+                            "input": str(case['input']), 
+                            "expected": str(case['output']).strip(), 
+                            "actual": proc.stdout.strip(), 
+                            "passed": proc.stdout.strip() == str(case['output']).strip(), 
+                            "error": proc.stderr
+                        })
+                    except subprocess.TimeoutExpired: 
+                        results.append({"error": "Timeout", "passed": False, "expected": str(case['output']), "actual": "T_LIMIT_EXCEEDED"})
 
-        elif request.language == "cpp":
-            file_path = os.path.join(tmpdir, "solution.cpp")
-            exec_path = os.path.join(tmpdir, "solution.exe")
-            with open(file_path, "w") as f: f.write(request.code)
-            compile_proc = subprocess.run(["g++", file_path, "-o", exec_path], capture_output=True, text=True)
-            if compile_proc.returncode != 0: return {"compile_error": compile_proc.stderr}
-            
-            for case in request.test_cases:
-                proc = subprocess.run([exec_path], input=str(case['input']), capture_output=True, text=True, timeout=5)
-                results.append({"input": case['input'], "expected": str(case['output']).strip(), "actual": proc.stdout.strip(), "passed": proc.stdout.strip() == str(case['output']).strip()})
+            elif request.language == "cpp":
+                file_path = os.path.join(tmpdir, "solution.cpp")
+                # Cross-platform handling for binary naming
+                exec_name = "solution.exe" if os.name == 'nt' else "./solution"
+                exec_path = os.path.join(tmpdir, exec_name)
+                
+                with open(file_path, "w") as f: f.write(request.code)
+                compile_proc = subprocess.run(["g++", file_path, "-o", exec_path], capture_output=True, text=True)
+                
+                if compile_proc.returncode != 0: 
+                    return {"compile_error": compile_proc.stderr, "results": []}
+                
+                for case in request.test_cases:
+                    try:
+                        proc = subprocess.run([exec_path], input=str(case['input']), capture_output=True, text=True, timeout=5)
+                        results.append({
+                            "input": str(case['input']), 
+                            "expected": str(case['output']).strip(), 
+                            "actual": proc.stdout.strip(), 
+                            "passed": proc.stdout.strip() == str(case['output']).strip()
+                        })
+                    except subprocess.TimeoutExpired:
+                         results.append({"error": "Timeout", "passed": False})
 
-        elif request.language == "java":
-            # Assumes class name is 'Solution'
-            file_path = os.path.join(tmpdir, "Solution.java")
-            with open(file_path, "w") as f: f.write(request.code)
-            compile_proc = subprocess.run(["javac", file_path], capture_output=True, text=True)
-            if compile_proc.returncode != 0: return {"compile_error": compile_proc.stderr}
-            
-            for case in request.test_cases:
-                proc = subprocess.run(["java", "-cp", tmpdir, "Solution"], input=str(case['input']), capture_output=True, text=True, timeout=5)
-                results.append({"input": case['input'], "expected": str(case['output']).strip(), "actual": proc.stdout.strip(), "passed": proc.stdout.strip() == str(case['output']).strip()})
+            elif request.language == "java":
+                # Assumes class name is 'Solution' as per standard
+                file_path = os.path.join(tmpdir, "Solution.java")
+                with open(file_path, "w") as f: f.write(request.code)
+                compile_proc = subprocess.run(["javac", file_path], capture_output=True, text=True)
+                
+                if compile_proc.returncode != 0: 
+                    return {"compile_error": compile_proc.stderr, "results": []}
+                
+                for case in request.test_cases:
+                    try:
+                        proc = subprocess.run(["java", "-cp", tmpdir, "Solution"], input=str(case['input']), capture_output=True, text=True, timeout=5)
+                        results.append({
+                            "input": str(case['input']), 
+                            "expected": str(case['output']).strip(), 
+                            "actual": proc.stdout.strip(), 
+                            "passed": proc.stdout.strip() == str(case['output']).strip()
+                        })
+                    except subprocess.TimeoutExpired:
+                        results.append({"error": "Timeout", "passed": False})
+
+        except Exception as e:
+            return {"compile_error": str(e), "results": []}
 
     return {"results": results}
 

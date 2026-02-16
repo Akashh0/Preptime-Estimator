@@ -33,7 +33,7 @@ class CodeExecutionRequest(BaseModel):
     language: str
     test_cases: list
 
-# --- APTITUDE ENDPOINT (UNTOUCHED) ---
+# --- APTITUDE ENDPOINT ---
 @app.get("/generate-aptitude/{company}")
 async def generate_aptitude(company: str):
     print(f"--- Engineering {company}-Specific Assessment ---")
@@ -55,10 +55,19 @@ async def generate_aptitude(company: str):
     4. NO BRANDING: Do not mention "{company}" in questions.
     """
     user_content = f"Generate 10 mixed-scenario questions mirroring the {company} style. Return raw JSON array."
-    payload = {"model": MODEL_ID, "messages": [{"role": "system", "content": system_content}, {"role": "user", "content": user_content}], "max_tokens": 2500, "temperature": 0.1, "response_format": { "type": "json_object" }}
+    payload = {
+        "model": MODEL_ID, 
+        "messages": [
+            {"role": "system", "content": system_content}, 
+            {"role": "user", "content": user_content}
+        ], 
+        "max_tokens": 2500, 
+        "temperature": 0.1, 
+        "response_format": { "type": "json_object" }
+    }
     return await call_huggingface_router(payload, "aptitude")
 
-# --- CODING ENDPOINT (UNTOUCHED) ---
+# --- CODING ENDPOINT ---
 @app.get("/generate-coding/{topic}")
 async def generate_coding(topic: str):
     print(f"--- Reconstructing Neural Thread: {topic} ---")
@@ -75,14 +84,22 @@ async def generate_coding(topic: str):
     - BOILERPLATE: Provide a Python 3 function signature.
     """
     user_content = f"Generate 5 coding problems for topic '{topic}' as a raw JSON array."
-    payload = {"model": MODEL_ID, "messages": [{"role": "system", "content": system_content}, {"role": "user", "content": user_content}], "max_tokens": 3000, "temperature": 0.2, "response_format": { "type": "json_object" }}
+    payload = {
+        "model": MODEL_ID, 
+        "messages": [
+            {"role": "system", "content": system_content}, 
+            {"role": "user", "content": user_content}
+        ], 
+        "max_tokens": 3000, 
+        "temperature": 0.2, 
+        "response_format": { "type": "json_object" }
+    }
     return await call_huggingface_router(payload, "coding")
 
-# --- MULTI-LANGUAGE VALIDATION KERNEL (UPDATED FOR STABILITY) ---
+# --- MULTI-LANGUAGE VALIDATION KERNEL ---
 @app.post("/execute-code")
 async def execute_code(request: CodeExecutionRequest):
     print(f"--- Validating {request.language} Thread ---")
-    # Always initialize as a list to prevent frontend "Object not valid" errors
     results = [] 
     
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -106,7 +123,6 @@ async def execute_code(request: CodeExecutionRequest):
 
             elif request.language == "cpp":
                 file_path = os.path.join(tmpdir, "solution.cpp")
-                # Cross-platform handling for binary naming
                 exec_name = "solution.exe" if os.name == 'nt' else "./solution"
                 exec_path = os.path.join(tmpdir, exec_name)
                 
@@ -129,7 +145,6 @@ async def execute_code(request: CodeExecutionRequest):
                          results.append({"error": "Timeout", "passed": False})
 
             elif request.language == "java":
-                # Assumes class name is 'Solution' as per standard
                 file_path = os.path.join(tmpdir, "Solution.java")
                 with open(file_path, "w") as f: f.write(request.code)
                 compile_proc = subprocess.run(["javac", file_path], capture_output=True, text=True)
@@ -154,16 +169,39 @@ async def execute_code(request: CodeExecutionRequest):
 
     return {"results": results}
 
+# --- IMPROVED ROUTER WITH NESTED EXTRACTION ---
 async def call_huggingface_router(payload, context):
     try:
         response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=120)
         result = response.json()
         raw_text = result['choices'][0]['message']['content']
-        json_match = re.search(r'\[\s*{.*}\s*\]', raw_text, re.DOTALL)
-        if json_match: return json.loads(json_match.group())
-        data = json.loads(raw_text)
-        return data if isinstance(data, list) else data.get("questions" if context == "aptitude" else "problems", data)
-    except Exception as e: raise HTTPException(status_code=500, detail="Logic Failed")
+        
+        # 1. Direct JSON Parsing
+        try:
+            data = json.loads(raw_text)
+            
+            # If the AI returned a dictionary, extract the specific list
+            if isinstance(data, dict):
+                # Search for known keys first
+                for key in ["problems", "questions", "data", "mcqs"]:
+                    if key in data and isinstance(data[key], list):
+                        return data[key]
+                # Fallback: Find any value that is a list
+                for val in data.values():
+                    if isinstance(val, list):
+                        return val
+            
+            return data if isinstance(data, list) else []
+        except (json.JSONDecodeError, TypeError):
+            # 2. Regex Fallback for malformed JSON strings
+            json_match = re.search(r'\[\s*{.*}\s*\]', raw_text, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group())
+            return []
+            
+    except Exception as e:
+        print(f"Router Exception: {e}")
+        raise HTTPException(status_code=500, detail="Neural Thread Logic Failed")
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Play, ChevronLeft, Cpu, Loader2, CheckCircle2, XCircle, Code2, BookOpen, BarChart } from 'lucide-react';
+import { Play, ChevronLeft, Cpu, Loader2, CheckCircle2, XCircle, Code2, BookOpen, BarChart } from 'lucide-react';
 
 const LANG_CONFIG = {
-  python3: { label: "Python 3", starter: "import sys\n\ndef solve():\n    line = sys.stdin.read().strip()\n    # Process input here\n    print(line)\n\nsolve()", color: "text-blue-400" },
-  java: { label: "Java 17", starter: "import java.util.*;\n\npublic class Solution {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        if(sc.hasNextLine()) System.out.println(sc.nextLine());\n    }\n}", color: "text-orange-400" },
-  cpp: { label: "C++ 20", starter: "#include <iostream>\n#include <string>\nusing namespace std;\n\nint main() {\n    string s;\n    getline(cin, s);\n    cout << s << endl;\n    return 0;\n}", color: "text-cyan-400" }
+  python3: { label: "Python 3", starter: "import sys\n\ndef solve():\n    # Read from standard input\n    input_data = sys.stdin.read().strip()\n    \n    # Logic here\n    print(input_data)\n\nif __name__ == '__main__':\n    solve()" },
+  java: { label: "Java 17", starter: "import java.util.*;\n\npublic class Solution {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        while(sc.hasNextLine()) {\n            System.out.println(sc.nextLine());\n        }\n    }\n}" },
+  cpp: { label: "C++ 20", starter: "#include <iostream>\n#include <string>\nusing namespace std;\n\nint main() {\n    string s;\n    while(getline(cin, s)) {\n        cout << s << endl;\n    }\n    return 0;\n}" }
 };
 
 export default function ProblemWorkspace({ problem, onBack }) {
@@ -23,105 +22,101 @@ export default function ProblemWorkspace({ problem, onBack }) {
     setResults([]);
     try {
       const res = await axios.post("http://localhost:8000/execute-code", {
-        code: code,
-        language: lang,
-        test_cases: problem.examples
+        code, language: lang, test_cases: problem.examples
       });
-      
       const data = res.data.results;
-      // FIX: Strict check to ensure results is always an array
       setResults(Array.isArray(data) ? data : Object.values(data || {}));
-      
       if (res.data.compile_error) setError(res.data.compile_error);
       setActiveTab('results'); 
     } catch (err) {
-      setError("Neural Link Failed: Backend unreachable.");
-    } finally {
-      setIsRunning(false);
-    }
+      setError("System Failure: Neural Link Unreachable.");
+    } finally { setIsRunning(false); }
   };
 
   return (
-    <div className="flex flex-col gap-4 md:gap-8 h-screen md:h-auto pb-6 animate-in fade-in slide-in-from-bottom-6 duration-700 px-2 md:px-0 overflow-x-hidden">
+    <div className="h-screen bg-[#050505] text-white flex flex-col p-4 md:p-8 overflow-hidden">
       
-      {/* HEADER HUD */}
-      <div className="flex justify-between items-center bg-white/[0.02] border border-white/5 p-4 md:p-6 rounded-2xl md:rounded-[2rem] backdrop-blur-xl sticky top-2 z-40">
-        <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors font-mono text-[10px] md:text-xs uppercase tracking-widest">
-          <ChevronLeft size={16} /> <span className="hidden sm:inline">Back</span>
+      {/* HUD HEADER */}
+      <div className="flex justify-between items-center bg-white/[0.03] border border-white/10 p-5 rounded-[2rem] backdrop-blur-2xl mb-6 shrink-0 shadow-2xl">
+        <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors font-mono text-xs uppercase tracking-tighter">
+          <ChevronLeft size={18} /> Back_to_Set
         </button>
         
-        <div className="flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-2 text-[9px] font-mono text-slate-500 uppercase tracking-widest mr-4">
-             <Cpu size={12}/> RTX_4050_KERNEL
+        <div className="flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-3 text-[10px] font-mono text-slate-500 uppercase tracking-[0.2em]">
+             <Cpu size={14} className="text-purple-500"/> RTX_KERNEL_ACTIVE
           </div>
-          <button onClick={handleExecute} disabled={isRunning} className="flex items-center gap-2 px-4 md:px-6 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-500 transition-all font-bold text-[10px] md:text-xs uppercase tracking-widest italic disabled:opacity-50">
-            {isRunning ? <Loader2 className="animate-spin" size={14} /> : <Play size={14} />}
-            {isRunning ? "RUNNING" : "EXECUTE"}
+          <button onClick={handleExecute} disabled={isRunning} className="flex items-center gap-3 px-8 py-3 bg-purple-600 text-white rounded-2xl hover:bg-purple-500 transition-all font-black text-xs uppercase tracking-widest italic disabled:opacity-50 shadow-[0_0_20px_rgba(147,51,234,0.3)]">
+            {isRunning ? <Loader2 className="animate-spin" size={16} /> : <Play size={16} />}
+            {isRunning ? "Running" : "Execute_Code"}
           </button>
         </div>
       </div>
 
-      {/* MOBILE TAB SWITCHER */}
-      <div className="flex md:hidden bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
-        {[
-          { id: 'description', icon: BookOpen, label: 'Info' },
-          { id: 'editor', icon: Code2, label: 'Code' },
-          { id: 'results', icon: BarChart, label: 'Tests' }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-grow flex items-center justify-center gap-2 py-2 rounded-lg font-mono text-[10px] uppercase transition-all
-              ${activeTab === tab.id ? 'bg-purple-600 text-white' : 'text-slate-500'}`}
-          >
-            <tab.icon size={14} /> {tab.label}
+      {/* MOBILE TABS (HIDDEN ON DESKTOP) */}
+      <div className="flex md:hidden bg-white/5 border border-white/10 rounded-2xl p-1 mb-4 shrink-0">
+        {['description', 'editor', 'results'].map(t => (
+          <button key={t} onClick={() => setActiveTab(t)} className={`flex-grow py-3 rounded-xl font-mono text-[10px] uppercase ${activeTab === t ? 'bg-purple-600' : 'text-slate-500'}`}>
+            {t}
           </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-12 gap-4 md:gap-8 flex-grow">
-        <div className={`${activeTab === 'description' ? 'block' : 'hidden'} md:block col-span-12 md:col-span-4 p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] bg-white/[0.01] border border-white/5 overflow-y-auto custom-scrollbar flex flex-col min-h-[300px] md:min-h-0`}>
-          <div className="space-y-4 md:space-y-6">
-            <h2 className="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{problem.name}</h2>
-            <p className="text-xs md:text-sm text-slate-400 leading-relaxed font-medium">{problem.description}</p>
-            <div className="pt-6 border-t border-white/5 space-y-4 font-mono">
-              <h4 className="text-[9px] text-slate-600 uppercase tracking-widest font-black italic">// Test_Cases</h4>
+      {/* WORKSPACE GRID */}
+      <div className="flex-grow grid grid-cols-12 gap-6 overflow-hidden h-full">
+        
+        {/* LEFT: INFO */}
+        <div className={`${activeTab === 'description' ? 'flex' : 'hidden md:flex'} col-span-12 md:col-span-4 flex-col bg-white/[0.02] border border-white/5 rounded-[3rem] p-10 overflow-y-auto custom-scrollbar`}>
+          <div className="space-y-8">
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter leading-none">{problem.name}</h2>
+            <p className="text-slate-400 leading-relaxed text-sm font-medium">{problem.description}</p>
+            <div className="space-y-4 pt-8 border-t border-white/5 font-mono">
+              <span className="text-[10px] text-slate-600 uppercase font-black italic">// Test_Scenarios</span>
               {problem.examples?.map((ex, i) => (
-                <div key={i} className="p-4 bg-black/40 rounded-xl border border-white/5 text-[9px] md:text-[10px] text-cyan-400">
-                  <span className="opacity-40 text-white">In:</span> {String(ex.input)}<br/>
-                  <span className="opacity-40 text-white">Out:</span> {String(ex.output)}
+                <div key={i} className="p-5 bg-black/60 rounded-2xl border border-white/5 text-[11px] text-cyan-400 space-y-2">
+                  <div className="flex gap-2"><span className="text-white/30 italic">INPUT:</span> {String(ex.input)}</div>
+                  <div className="flex gap-2"><span className="text-white/30 italic">EXPECT:</span> {String(ex.output)}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className={`${activeTab === 'editor' || activeTab === 'results' ? 'block' : 'hidden'} md:block col-span-12 md:col-span-8 flex flex-col gap-4 md:gap-6`}>
-          <div className={`${activeTab === 'editor' ? 'flex' : 'hidden md:flex'} flex-col flex-grow rounded-[2rem] md:rounded-[3rem] bg-[#0d0d10] border border-white/10 overflow-hidden min-h-[400px] md:min-h-0`}>
-            <div className="bg-white/5 px-6 md:px-8 py-3 border-b border-white/5 flex justify-between items-center font-mono text-[10px]">
-              <select value={lang} onChange={(e) => { setLang(e.target.value); setCode(LANG_CONFIG[e.target.value].starter); }} className="bg-transparent text-purple-300 outline-none">
-                <option value="python3">Python 3</option>
-                <option value="java">Java 17</option>
-                <option value="cpp">C++ 20</option>
+        {/* RIGHT: BIG EDITOR & RESULTS */}
+        <div className={`${activeTab !== 'description' ? 'flex' : 'hidden md:flex'} col-span-12 md:col-span-8 flex-col gap-6 overflow-hidden`}>
+          
+          {/* EDITOR (MAXIMIZED) */}
+          <div className="flex-[3] flex flex-col bg-[#0a0a0c] border border-white/10 rounded-[3.5rem] overflow-hidden shadow-inner">
+            <div className="bg-white/5 px-8 py-4 border-b border-white/5 flex justify-between items-center font-mono text-[10px]">
+              <select value={lang} onChange={(e) => { setLang(e.target.value); setCode(LANG_CONFIG[e.target.value].starter); }} className="bg-transparent text-purple-400 outline-none font-bold uppercase tracking-widest cursor-pointer">
+                <option value="python3">Python 3.11</option>
+                <option value="java">Java 17 LTS</option>
+                <option value="cpp">C++ 20 Standard</option>
               </select>
-              <span className="text-slate-600">KERNEL_ACTIVE</span>
+              <span className="text-slate-600 font-bold italic tracking-tighter">SOURCE_CONTROL_ENABLED</span>
             </div>
-            <textarea value={code} onChange={(e) => setCode(e.target.value)} spellCheck="false" className="flex-grow bg-transparent p-6 md:p-10 font-mono text-xs md:text-sm text-purple-300 outline-none resize-none leading-relaxed" />
+            <textarea 
+              value={code} onChange={(e) => setCode(e.target.value)} spellCheck="false"
+              className="flex-grow bg-transparent p-10 font-mono text-base text-purple-100 outline-none resize-none leading-relaxed custom-scrollbar"
+              placeholder="// Write your logic node here..."
+            />
           </div>
 
-          <div className={`${activeTab === 'results' ? 'block' : 'hidden md:block'} h-[280px] md:h-64 rounded-[2rem] bg-black border border-white/5 p-6 overflow-y-auto custom-scrollbar mb-4`}>
-            <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest italic block mb-4">// Results</span>
-            {error && <pre className="text-red-400 text-[10px] font-mono bg-red-400/5 p-4 rounded-lg border border-red-400/10">{error}</pre>}
-            <div className="space-y-2">
-              {Array.isArray(results) && results.map((res, i) => (
-                <div key={i} className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl border ${res.passed ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+          {/* RESULTS (COMPACT) */}
+          <div className="flex-1 min-h-[180px] bg-black/80 border border-white/5 rounded-[3rem] p-8 overflow-y-auto custom-scrollbar shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-[10px] font-mono text-slate-600 uppercase tracking-widest italic">// Kernel_Output</span>
+              {isRunning && <div className="flex gap-1 h-3 items-end"><div className="w-1 bg-purple-500 animate-bounce h-2" /><div className="w-1 bg-purple-500 animate-bounce h-3 delay-75" /></div>}
+            </div>
+            {error && <pre className="text-red-400 text-xs font-mono bg-red-400/5 p-4 rounded-xl border border-red-500/20 mb-4">{error}</pre>}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {results.map((res, i) => (
+                <div key={i} className={`p-5 rounded-2xl border transition-all flex items-center justify-between ${res.passed ? 'bg-green-500/5 border-green-500/10' : 'bg-red-500/5 border-red-500/10'}`}>
                   <div className="flex items-center gap-3">
-                    {res.passed ? <CheckCircle2 size={14} className="text-green-400" /> : <XCircle size={14} className="text-red-400" />}
-                    <span className="text-[9px] font-mono text-white">CASE_0{i+1}</span>
+                    {res.passed ? <CheckCircle2 size={16} className="text-green-400" /> : <XCircle size={16} className="text-red-400" />}
+                    <span className="text-[11px] font-mono font-bold">CASE_0{i+1}</span>
                   </div>
-                  <div className="text-[8px] font-mono text-slate-500 mt-2 sm:mt-0 italic">
-                    Exp: {String(res.expected)} | Got: {String(res.actual)}
-                  </div>
+                  <span className={`text-[10px] font-mono italic ${res.passed ? 'text-green-500/50' : 'text-red-500/50'}`}>{res.passed ? 'SUCCESS' : 'FAILURE'}</span>
                 </div>
               ))}
             </div>

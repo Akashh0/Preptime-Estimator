@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Zap, Layers, Cpu, Database, ChevronRight } from 'lucide-react';
+import { Activity, Zap, Layers, Cpu, Database, ChevronRight, ArrowLeft } from 'lucide-react';
 import ProblemWorkspace from './ProblemWorkspace';
 
 const TOPICS = [
@@ -36,7 +36,6 @@ export default function CodingArena() {
     setSelectedTopic(topic.name);
     try {
       const res = await axios.get(`http://localhost:8000/generate-coding/${topic.name}`);
-      // Safety check for data array
       const data = Array.isArray(res.data) ? res.data : (res.data.problems || res.data.questions || []);
       setProblemsCache(prev => ({ ...prev, [topic.name]: data }));
       setView('problem-list');
@@ -76,6 +75,16 @@ export default function CodingArena() {
               {view === 'roadmap' ? 'Arena.' : 'Set.'}
             </span>
           </h1>
+          
+          {/* BACK BUTTON FOR PROBLEM LIST */}
+          {view === 'problem-list' && (
+            <button 
+              onClick={() => setView('roadmap')}
+              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-mono text-[10px] uppercase tracking-widest pt-4"
+            >
+              <ArrowLeft size={14} /> Back_to_Roadmap
+            </button>
+          )}
         </div>
         
         <div className="max-w-md text-left lg:text-right space-y-3 opacity-60 italic text-[10px] font-mono tracking-widest text-slate-500 uppercase">
@@ -94,12 +103,10 @@ export default function CodingArena() {
               onClick={() => fetchTopicProblems(topic)}
               className="group relative cursor-pointer active:scale-95 transition-all col-span-12 md:col-span-6 flex"
             >
-              {/* SHINE EFFECT OVERLAY */}
               <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem]">
                 <div className="absolute -inset-full top-[-100%] left-[-100%] w-[200%] h-[200%] bg-gradient-to-br from-transparent via-white/10 to-transparent rotate-45 translate-x-[-100%] transition-transform duration-1000 group-hover:translate-x-[100%] group-hover:translate-y-[100%]" />
               </div>
 
-              {/* CARD CONTAINER */}
               <div 
                 className="relative flex-grow w-full overflow-hidden bg-white/[0.01] border border-white/5 backdrop-blur-3xl rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 flex flex-col justify-between min-h-[280px] md:min-h-[400px] transition-all duration-500 group-hover:bg-white/[0.03]"
                 style={{ borderColor: 'rgba(255,255,255,0.05)' }}
@@ -140,22 +147,16 @@ export default function CodingArena() {
             <div 
               key={index}
               onClick={() => { setActiveProblem(prob); setView('workspace'); }}
-              className="col-span-12 md:col-span-4 group relative cursor-pointer active:scale-95 transition-all flex"
+              className="col-span-12 md:col-span-4 group relative cursor-pointer active:scale-95 transition-all"
             >
-              {/* SHINE EFFECT OVERLAY (Added for consistency) */}
-              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-[2.5rem] md:rounded-[3rem]">
-                <div className="absolute -inset-full top-[-100%] left-[-100%] w-[200%] h-[200%] bg-gradient-to-br from-transparent via-white/10 to-transparent rotate-45 translate-x-[-100%] transition-transform duration-1000 group-hover:translate-x-[100%] group-hover:translate-y-[100%]" />
-              </div>
-
-              <div className="p-8 md:p-12 rounded-[2.5rem] bg-white/[0.01] border border-white/10 backdrop-blur-3xl h-[240px] md:h-[300px] flex flex-col justify-between overflow-hidden group-hover:border-purple-500/30 group-hover:bg-purple-500/5 transition-all flex-grow">
+              <div className="p-8 md:p-12 rounded-[2.5rem] bg-white/[0.01] border border-white/10 backdrop-blur-3xl h-[240px] md:h-[300px] flex flex-col justify-between overflow-hidden group-hover:border-purple-500/30 transition-all">
                 <div className="flex justify-between items-start">
                   <span className="text-[8px] font-mono text-purple-500 border border-purple-500/30 px-3 py-1 rounded-full uppercase tracking-widest italic font-bold">{prob.difficulty || 'Medium'}</span>
-                  <span className="text-[8px] font-mono text-slate-700 uppercase tracking-widest font-black italic">Thread_0{index + 1}</span>
                 </div>
                 <div>
-                  {/* UPDATED: Simplified Problem Indexing */}
+                  {/* UPDATE: Untitled thread ku badhila Problem number logic */}
                   <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-none group-hover:translate-x-2 transition-transform">
-                    {prob.name ? prob.name : `Problem ${index + 1}`}
+                    Problem {index + 1}
                   </h4>
                   <div className="mt-6 flex items-center gap-3 text-[10px] font-mono text-slate-500 group-hover:text-purple-400 transition-colors uppercase tracking-[0.3em] font-bold">
                     Execute_Kernel <ChevronRight size={14} />

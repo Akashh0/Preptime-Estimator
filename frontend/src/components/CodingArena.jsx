@@ -140,15 +140,22 @@ export default function CodingArena() {
             <div 
               key={index}
               onClick={() => { setActiveProblem(prob); setView('workspace'); }}
-              className="col-span-12 md:col-span-4 group relative cursor-pointer active:scale-95 transition-all"
+              className="col-span-12 md:col-span-4 group relative cursor-pointer active:scale-95 transition-all flex"
             >
-              <div className="p-8 md:p-12 rounded-[2.5rem] bg-white/[0.01] border border-white/10 backdrop-blur-3xl h-[240px] md:h-[300px] flex flex-col justify-between overflow-hidden group-hover:border-purple-500/30 transition-all">
+              {/* SHINE EFFECT OVERLAY (Added for consistency) */}
+              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-[2.5rem] md:rounded-[3rem]">
+                <div className="absolute -inset-full top-[-100%] left-[-100%] w-[200%] h-[200%] bg-gradient-to-br from-transparent via-white/10 to-transparent rotate-45 translate-x-[-100%] transition-transform duration-1000 group-hover:translate-x-[100%] group-hover:translate-y-[100%]" />
+              </div>
+
+              <div className="p-8 md:p-12 rounded-[2.5rem] bg-white/[0.01] border border-white/10 backdrop-blur-3xl h-[240px] md:h-[300px] flex flex-col justify-between overflow-hidden group-hover:border-purple-500/30 group-hover:bg-purple-500/5 transition-all flex-grow">
                 <div className="flex justify-between items-start">
                   <span className="text-[8px] font-mono text-purple-500 border border-purple-500/30 px-3 py-1 rounded-full uppercase tracking-widest italic font-bold">{prob.difficulty || 'Medium'}</span>
+                  <span className="text-[8px] font-mono text-slate-700 uppercase tracking-widest font-black italic">Thread_0{index + 1}</span>
                 </div>
                 <div>
+                  {/* UPDATED: Simplified Problem Indexing */}
                   <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-none group-hover:translate-x-2 transition-transform">
-                    {prob.name || prob.question || "Untitled Thread"}
+                    {prob.name ? prob.name : `Problem ${index + 1}`}
                   </h4>
                   <div className="mt-6 flex items-center gap-3 text-[10px] font-mono text-slate-500 group-hover:text-purple-400 transition-colors uppercase tracking-[0.3em] font-bold">
                     Execute_Kernel <ChevronRight size={14} />

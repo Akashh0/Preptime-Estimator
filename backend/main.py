@@ -170,30 +170,30 @@ async def execute_code(request: CodeExecutionRequest):
     return {"results": results}
 
 # --- IMPROVED ROUTER WITH NESTED EXTRACTION ---
+# --- main.py Updated Router Logic ---
 async def call_huggingface_router(payload, context):
     try:
         response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=120)
         result = response.json()
         raw_text = result['choices'][0]['message']['content']
         
-        # 1. Direct JSON Parsing
+        # 1. Direct JSON Parsing with nested extraction
         try:
             data = json.loads(raw_text)
             
-            # If the AI returned a dictionary, extract the specific list
             if isinstance(data, dict):
-                # Search for known keys first
+                # Search for any key that contains a list (problems, questions, mcqs, etc.)
                 for key in ["problems", "questions", "data", "mcqs"]:
                     if key in data and isinstance(data[key], list):
                         return data[key]
-                # Fallback: Find any value that is a list
+                # Fallback: Find the first value that is a list
                 for val in data.values():
                     if isinstance(val, list):
                         return val
             
             return data if isinstance(data, list) else []
         except (json.JSONDecodeError, TypeError):
-            # 2. Regex Fallback for malformed JSON strings
+            # 2. Regex Fallback if AI sends extra text outside JSON
             json_match = re.search(r'\[\s*{.*}\s*\]', raw_text, re.DOTALL)
             if json_match:
                 return json.loads(json_match.group())

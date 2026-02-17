@@ -15,9 +15,14 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def read_root():
+    return {"status": "Neural Link Active"}
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"

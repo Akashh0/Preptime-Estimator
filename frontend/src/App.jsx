@@ -17,19 +17,16 @@ export default function App() {
   const [currentQ, setCurrentQ] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
 
-  // NEW: Persistent Aptitude Vault
   const [aptitudeCache, setAptitudeCache] = useState(() => {
     const saved = localStorage.getItem('aptitude_vault');
     return saved ? JSON.parse(saved) : {};
   });
 
-  // Sync vault to localStorage whenever it updates
   useEffect(() => {
     localStorage.setItem('aptitude_vault', JSON.stringify(aptitudeCache));
   }, [aptitudeCache]);
 
   const startAptitude = async (company) => {
-    // Check Neural Vault first to prevent re-generation
     if (aptitudeCache[company]) {
       setQuestions(aptitudeCache[company]);
       setView('testing');
@@ -40,10 +37,9 @@ export default function App() {
 
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:8000/generate-aptitude/${company}`);
+      const res = await axios.get(`https://akashh077-assessment-trainer.hf.space/generate-aptitude/${company}`);
       const newQuestions = res.data;
       
-      // Update Vault
       setAptitudeCache(prev => ({
         ...prev,
         [company]: newQuestions
@@ -110,7 +106,8 @@ export default function App() {
               )}
 
               {view === 'landing' && !loading && (
-                <BentoGrid onSelect={startAptitude} />
+                // FIX: Added onBack prop here to link BentoGrid to the Dashboard
+                <BentoGrid onSelect={startAptitude} onBack={() => setMode('portal')} />
               )}
 
               {view === 'testing' && questions.length > 0 && (
@@ -136,7 +133,8 @@ export default function App() {
           >
             <Navbar mode="coding" onBack={() => setMode('portal')} />
             <main className="relative z-10 p-12 max-w-[1600px] mx-auto">
-              <CodingArena />
+              {/* onExit is correctly linked to Portal mode */}
+              <CodingArena onExit={() => setMode('portal')} />
             </main>
           </motion.div>
         )}

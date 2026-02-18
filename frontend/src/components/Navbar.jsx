@@ -32,11 +32,6 @@ export default function Navbar({ view }) {
           </div>
           
           <div className="w-px h-3 bg-white/10" />
-          
-          <div className="flex items-center gap-3">
-            <Clock size={12} className="text-slate-500" />
-            <span className="text-xs font-mono text-white tracking-widest font-black">00:19:24</span>
-          </div>
         </div>
       )}
 

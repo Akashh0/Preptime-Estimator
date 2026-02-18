@@ -11,7 +11,7 @@ const TOPICS = [
   { id: 4, name: "Trees & Graphs", problems: 20, category: "Non-Linear_Logic", desc: "Map non-linear hierarchical nodes.", accent: "#f59e0b" }, // Amber
 ];
 
-export default function CodingArena() {
+export default function CodingArena({ onExit }) {
   const [view, setView] = useState('roadmap');
   const [loading, setLoading] = useState(false);
   const [activeProblem, setActiveProblem] = useState(null);
@@ -35,7 +35,7 @@ export default function CodingArena() {
     setLoading(true);
     setSelectedTopic(topic.name);
     try {
-      const res = await axios.get(`http://localhost:8000/generate-coding/${topic.name}`);
+      const res = await axios.get(`https://akashh077-assessment-trainer.hf.space/generate-coding/${topic.name}`);
       const data = Array.isArray(res.data) ? res.data : (res.data.problems || res.data.questions || []);
       setProblemsCache(prev => ({ ...prev, [topic.name]: data }));
       setView('problem-list');
@@ -76,15 +76,24 @@ export default function CodingArena() {
             </span>
           </h1>
           
-          {/* BACK BUTTON FOR PROBLEM LIST */}
-          {view === 'problem-list' && (
-            <button 
-              onClick={() => setView('roadmap')}
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-mono text-[10px] uppercase tracking-widest pt-4"
-            >
-              <ArrowLeft size={14} /> Back_to_Roadmap
-            </button>
-          )}
+          {/* NAVIGATION BUTTONS */}
+          <div className="flex gap-4 pt-4">
+            {view === 'roadmap' ? (
+              <button 
+                onClick={onExit}
+                className="flex items-center gap-2 text-slate-500 hover:text-white transition-all font-mono text-[10px] uppercase tracking-widest px-6 py-2 bg-white/5 rounded-full border border-white/10 hover:border-purple-500/50 hover:bg-white/10"
+              >
+                <ArrowLeft size={14} /> Exit_to_Dashboard
+              </button>
+            ) : (
+              <button 
+                onClick={() => setView('roadmap')}
+                className="flex items-center gap-2 text-slate-400 hover:text-white transition-all font-mono text-[10px] uppercase tracking-widest px-6 py-2 bg-white/5 rounded-full border border-white/10 hover:border-purple-500/50 hover:bg-white/10"
+              >
+                <ArrowLeft size={14} /> Back_to_Roadmap
+              </button>
+            )}
+          </div>
         </div>
         
         <div className="max-w-md text-left lg:text-right space-y-3 opacity-60 italic text-[10px] font-mono tracking-widest text-slate-500 uppercase">
@@ -129,6 +138,9 @@ export default function CodingArena() {
                   <h3 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-none group-hover:translate-x-3 transition-transform duration-500">
                     {topic.name}
                   </h3>
+                  <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    {topic.desc}
+                  </p>
                   <div className="flex items-center justify-between pt-4 border-t border-white/5">
                     <div className="flex items-center gap-5 flex-grow">
                       <div className="h-px w-4 group-hover:w-16 transition-all duration-700" style={{ backgroundColor: topic.accent }} />
@@ -149,12 +161,11 @@ export default function CodingArena() {
               onClick={() => { setActiveProblem(prob); setView('workspace'); }}
               className="col-span-12 md:col-span-4 group relative cursor-pointer active:scale-95 transition-all"
             >
-              <div className="p-8 md:p-12 rounded-[2.5rem] bg-white/[0.01] border border-white/10 backdrop-blur-3xl h-[240px] md:h-[300px] flex flex-col justify-between overflow-hidden group-hover:border-purple-500/30 transition-all">
+              <div className="p-8 md:p-12 rounded-[2.5rem] bg-white/[0.01] border border-white/10 backdrop-blur-3xl h-[240px] md:h-[300px] flex flex-col justify-between overflow-hidden group-hover:border-purple-500/30 transition-all shadow-2xl">
                 <div className="flex justify-between items-start">
                   <span className="text-[8px] font-mono text-purple-500 border border-purple-500/30 px-3 py-1 rounded-full uppercase tracking-widest italic font-bold">{prob.difficulty || 'Medium'}</span>
                 </div>
                 <div>
-                  {/* UPDATE: Untitled thread ku badhila Problem number logic */}
                   <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-none group-hover:translate-x-2 transition-transform">
                     Problem {index + 1}
                   </h4>

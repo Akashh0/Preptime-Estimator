@@ -21,7 +21,7 @@ export default function ProblemWorkspace({ problem, onBack }) {
     setError("");
     setResults([]);
     try {
-      const res = await axios.post("http://localhost:8000/execute-code", {
+      const res = await axios.post("https://akashh077-assessment-trainer.hf.space/execute-code", {
         code, language: lang, test_cases: problem.examples
       });
       const data = res.data.results;

@@ -1,8 +1,8 @@
 import React from 'react';
-import { ChevronRight, Activity, Cpu } from 'lucide-react';
+import { ChevronRight, Activity, Cpu, ArrowLeft } from 'lucide-react';
 import { COMPANIES } from '../Constants';
 
-export default function BentoGrid({ onSelect }) {
+export default function BentoGrid({ onSelect, onBack }) {
   return (
     <div className="space-y-12 md:space-y-20 pt-6 md:pt-16 animate-in fade-in slide-in-from-bottom-6 duration-1000 max-w-[1550px] mx-auto px-4 md:px-10 overflow-x-hidden">
       
@@ -17,6 +17,21 @@ export default function BentoGrid({ onSelect }) {
             Aptitude<br />
             <span className="text-transparent" style={{ WebkitTextStroke: '1.2px rgba(255,255,255,0.2)' }}>Vault.</span>
           </h1>
+
+          {/* BACK BUTTON ADDED WITHOUT REDUCING OTHER LINES */}
+          <div className="pt-4">
+            <button 
+              onClick={onBack} 
+              className="flex items-center gap-2 text-slate-500 hover:text-cyan-400 transition-all font-mono text-[10px] uppercase tracking-widest px-6 py-2 bg-white/5 rounded-full border border-white/10 hover:border-cyan-500/50"
+            >
+              <ArrowLeft size={14} /> Exit_to_Dashboard
+            </button>
+          </div>
+        </div>
+        
+        {/* Optional: Right-side meta-info (HUD element) */}
+        <div className="hidden lg:block max-w-xs text-right opacity-40 font-mono text-[9px] tracking-widest leading-relaxed uppercase italic">
+          // Indexing neural assessment protocols for enterprise-level logic validation.
         </div>
       </div>
 
@@ -29,9 +44,7 @@ export default function BentoGrid({ onSelect }) {
             className={`group relative cursor-pointer flex transition-all duration-500 
             ${c.span || 'col-span-12 md:col-span-6 lg:col-span-4'}`}
           >
-            {/* THE SHINE EFFECT: 
-              An absolute div that slides from top-left to bottom-right on hover.
-            */}
+            {/* THE SHINE EFFECT: Slides from top-left to bottom-right on hover. */}
             <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-[2.5rem] md:rounded-[3.5rem]">
               <div className="absolute -inset-full top-[-100%] left-[-100%] w-[200%] h-[200%] bg-gradient-to-br from-transparent via-white/10 to-transparent rotate-45 translate-x-[-100%] transition-transform duration-1000 group-hover:translate-x-[100%] group-hover:translate-y-[100%]" />
             </div>
@@ -40,11 +53,16 @@ export default function BentoGrid({ onSelect }) {
             <div 
               className="relative flex-grow w-full overflow-hidden bg-white/[0.01] border border-white/5 backdrop-blur-3xl rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-12 flex flex-col justify-between min-h-[160px] md:min-h-[400px] shadow-2xl transition-all duration-500 group-hover:bg-white/[0.03]"
               style={{ 
-                // Inline styles for dynamic colors based on company accent
                 borderColor: `rgba(255,255,255,0.05)`,
               }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = c.accent || '#06b6d4'}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = c.accent || '#06b6d4';
+                e.currentTarget.style.boxShadow = `0 0 40px -10px ${c.accent}20`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
             >
               
               {/* Dynamic Glow Overlay */}
@@ -85,7 +103,7 @@ export default function BentoGrid({ onSelect }) {
                       Link_Established
                     </span>
                   </div>
-                  <ChevronRight size={18} className="text-slate-700 transition-colors" />
+                  <ChevronRight size={18} className="text-slate-700 transition-colors group-hover:translate-x-1 duration-500" />
                 </div>
               </div>
             </div>

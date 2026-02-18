@@ -3,7 +3,10 @@ import axios from 'axios';
 import { Play, ChevronLeft, Cpu, Loader2, CheckCircle2, XCircle, Code2, BookOpen, BarChart } from 'lucide-react';
 
 const LANG_CONFIG = {
-  python3: { label: "Python 3", starter: "import sys\n\ndef solve():\n    # Read from standard input\n    input_data = sys.stdin.read().strip()\n    \n    # Logic here\n    print(input_data)\n\nif __name__ == '__main__':\n    solve()" },
+  python3: { 
+    label: "Python 3", 
+    starter: "def solve(input_data):\n    # Write your logic here\n    return 0" 
+  },
   java: { label: "Java 17", starter: "import java.util.*;\n\npublic class Solution {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        while(sc.hasNextLine()) {\n            System.out.println(sc.nextLine());\n        }\n    }\n}" },
   cpp: { label: "C++ 20", starter: "#include <iostream>\n#include <string>\nusing namespace std;\n\nint main() {\n    string s;\n    while(getline(cin, s)) {\n        cout << s << endl;\n    }\n    return 0;\n}" }
 };
@@ -53,7 +56,7 @@ export default function ProblemWorkspace({ problem, onBack }) {
         </div>
       </div>
 
-      {/* MOBILE TABS (HIDDEN ON DESKTOP) */}
+      {/* MOBILE TABS */}
       <div className="flex md:hidden bg-white/5 border border-white/10 rounded-2xl p-1 mb-4 shrink-0">
         {['description', 'editor', 'results'].map(t => (
           <button key={t} onClick={() => setActiveTab(t)} className={`flex-grow py-3 rounded-xl font-mono text-[10px] uppercase ${activeTab === t ? 'bg-purple-600' : 'text-slate-500'}`}>
@@ -85,7 +88,7 @@ export default function ProblemWorkspace({ problem, onBack }) {
         {/* RIGHT: BIG EDITOR & RESULTS */}
         <div className={`${activeTab !== 'description' ? 'flex' : 'hidden md:flex'} col-span-12 md:col-span-8 flex-col gap-6 overflow-hidden`}>
           
-          {/* EDITOR (MAXIMIZED) */}
+          {/* EDITOR */}
           <div className="flex-[3] flex flex-col bg-[#0a0a0c] border border-white/10 rounded-[3.5rem] overflow-hidden shadow-inner">
             <div className="bg-white/5 px-8 py-4 border-b border-white/5 flex justify-between items-center font-mono text-[10px]">
               <select value={lang} onChange={(e) => { setLang(e.target.value); setCode(LANG_CONFIG[e.target.value].starter); }} className="bg-transparent text-purple-400 outline-none font-bold uppercase tracking-widest cursor-pointer">
@@ -102,7 +105,7 @@ export default function ProblemWorkspace({ problem, onBack }) {
             />
           </div>
 
-          {/* RESULTS (COMPACT) */}
+          {/* RESULTS */}
           <div className="flex-1 min-h-[180px] bg-black/80 border border-white/5 rounded-[3rem] p-8 overflow-y-auto custom-scrollbar shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <span className="text-[10px] font-mono text-slate-600 uppercase tracking-widest italic">// Kernel_Output</span>

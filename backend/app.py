@@ -110,17 +110,40 @@ async def execute_code(request: CodeExecutionRequest):
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
             if request.language == "python3":
-                file_path = os.path.join(tmpdir, "solution.py")
-                with open(file_path, "w") as f: f.write(request.code)
+                func_match = re.search(r'def\s+(\w+)\s*\(', request.code)
+                func_name = func_match.group(1) if func_match else None
                 
-                for case in request.test_cases:
+                for i, case in enumerate(request.test_cases):
+                    file_path = os.path.join(tmpdir, f"solution_{i}.py") # Fix scoping error
+                    
+                    execution_wrapper = f"""
+{request.code}
+
+if __name__ == "__main__":
+    import json
+    try:
+        test_input = {repr(case['input'])}
+        if "{func_name}":
+            result = {func_name}(test_input)
+            print(result)
+        else:
+            print("EXEC_ERROR: No function detected")
+    except Exception as e:
+        import sys
+        print(f"EXEC_ERROR: {{e}}", file=sys.stderr)
+"""
+                    with open(file_path, "w") as f: f.write(execution_wrapper)
+                    
                     try:
-                        proc = subprocess.run(["python", file_path], input=str(case['input']), capture_output=True, text=True, timeout=5)
+                        proc = subprocess.run(["python", file_path], capture_output=True, text=True, timeout=5)
+                        actual_output = proc.stdout.strip()
+                        expected_output = str(case['output']).strip()
+                        
                         results.append({
                             "input": str(case['input']), 
-                            "expected": str(case['output']).strip(), 
-                            "actual": proc.stdout.strip(), 
-                            "passed": proc.stdout.strip() == str(case['output']).strip(), 
+                            "expected": expected_output, 
+                            "actual": actual_output, 
+                            "passed": str(actual_output) == str(expected_output), 
                             "error": proc.stderr
                         })
                     except subprocess.TimeoutExpired: 
@@ -174,31 +197,23 @@ async def execute_code(request: CodeExecutionRequest):
 
     return {"results": results}
 
-# --- IMPROVED ROUTER WITH NESTED EXTRACTION ---
-# --- main.py Updated Router Logic ---
 async def call_huggingface_router(payload, context):
     try:
         response = requests.post(API_URL, headers=HEADERS, json=payload, timeout=120)
         result = response.json()
         raw_text = result['choices'][0]['message']['content']
         
-        # 1. Direct JSON Parsing with nested extraction
         try:
             data = json.loads(raw_text)
-            
             if isinstance(data, dict):
-                # Search for any key that contains a list (problems, questions, mcqs, etc.)
                 for key in ["problems", "questions", "data", "mcqs"]:
                     if key in data and isinstance(data[key], list):
                         return data[key]
-                # Fallback: Find the first value that is a list
                 for val in data.values():
                     if isinstance(val, list):
                         return val
-            
             return data if isinstance(data, list) else []
         except (json.JSONDecodeError, TypeError):
-            # 2. Regex Fallback if AI sends extra text outside JSON
             json_match = re.search(r'\[\s*{.*}\s*\]', raw_text, re.DOTALL)
             if json_match:
                 return json.loads(json_match.group())
